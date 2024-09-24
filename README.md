@@ -12,5 +12,5 @@ Ha sido una experiencia valiosa para perfeccionar nuestras habilidades trabajand
 |Vega Reyes, Steven andrew|
 |Calderón Palomino, Luz Mayli|
 |Sierra Leiva, Piero Martin|
-|Bacilio De La Cruza, Jose Anthony|
+|Lavado Valencia Thalia|
 
