@@ -170,5 +170,5 @@ def menu():
             print("Opción no válida, intenta de nuevo.")
 
 
-# Ejecutar el menú
+# Ejecutar el meenú
 menu()
