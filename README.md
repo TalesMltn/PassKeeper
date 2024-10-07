@@ -1,16 +1,14 @@
 # Proyecto de QR codificador - "Decodificador de código"
 ## Descripción
-Los códigos QR, así como el proceso de codificación y decodificación de la información, son temas fascinantes que hemos abordado en este proyecto. Para lograrlo, utilizamos la librería qrcode, que nos permite generar fácilmente códigos QR a partir de cualquier tipo de información.
-Este proyecto ha sido una excelente manera de familiarizarnos con la instalación y el uso de diferentes módulos de Python, como qrcode, opencv-python, y Pillow. No solo hemos aprendido a crear códigos QR, sino también a decodificarlos desde imágenes o incluso en tiempo real utilizando la cámara de nuestro dispositivo.
-Ha sido una experiencia valiosa para perfeccionar nuestras habilidades trabajando con Python, gestionando librerías y desarrollando aplicaciones más complejas que integran tanto generación como lectura de códigos QR.
+Nos enfoca en desarrollar un sistema de gestión de usuarios y contraseñas que prioriza la seguridad y la facilidad de uso. Permite a los usuarios registrarse, iniciar sesión y gestionar sus contraseñas de forma segura, incorporando funcionalidades como la autenticación de dos factores y el cifrado de datos para proteger la información. Además, mantiene un historial de cambios de contraseña que facilita la auditoría y mejora la gestión de credenciales, así como notificaciones y recordatorios para mantener las contraseñas actualizadas. En un entorno digital vulnerable a ataques, este sistema ofrece una solución integral que mejora la seguridad y fomenta buenas prácticas en la gestión de contraseñas.
 
 ## Equipo de desarrollo 
 | Apellidos y Nombres | Rol |
 |---------------------|-----|
-|Bacilio De La Cruza, Jose Anthony| Scrum master |
-|Serpa Carpena, Edgardo German| Product Owner|
-|Vega Reyes, Steven andrew|
-|Calderón Palomino, Luz Mayli|
-|Sierra Leiva, Piero Martin|
-|Lavado Valencia Thalia|
+|Bacilio De La Cruza, Jose Anthony| Desarrollador |
+|Serpa Carpena, Edgardo German| Desarrollador |
+|Vega Reyes, Steven andrew| Desarrollador |
+|Calderón Palomino, Luz Mayli| Desarrollador |
+|Sierra Leiva, Piero Martin| Desarrollador |
+|Lavado Valencia Thalia| Desarrollador |
 
