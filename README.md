@@ -6,9 +6,9 @@ Nos enfoca en desarrollar un sistema de gestión de usuarios y contraseñas que 
 | Apellidos y Nombres | Rol |
 |---------------------|-----|
 |Bacilio De La Cruza, Jose Anthony| Desarrollador |
-|Serpa Carpena, Edgardo German| Desarrollador |
-|Vega Reyes, Steven andrew| Desarrollador |
 |Calderón Palomino, Luz Mayli| Desarrollador |
+|Lavado Valencia, Thalia Elizabeth| Desarrollador |
+|Serpa Carpena, Edgardo German| Desarrollador |
 |Sierra Leiva, Piero Martin| Desarrollador |
-|Lavado Valencia Thalia| Desarrollador |
+|Vega Reyes, Steven Andrew| Desarrollador |
 
