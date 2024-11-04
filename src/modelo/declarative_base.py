@@ -1,11 +1,15 @@
+# src/modelo/declarative_base.py
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+import os
 
-# Configurar base de datos SQLite en memoria para las pruebas
-engine = create_engine('sqlite:///db.sqlite', echo=False)
-# engine = create_engine('sqlite:///', echo=True)
-Session = sessionmaker(bind=engine)
-
+# Base de SQLAlchemy para todos los modelos
 Base = declarative_base()
-session = Session()
 
+# Asegúrate de que la base de datos esté en una ubicación fija
+db_path = os.path.join(os.path.dirname(__file__), 'db.sqlite')
+engine = create_engine(f'sqlite:///{db_path}', echo=False)
+
+Session = sessionmaker(bind=engine)
+session = Session()
