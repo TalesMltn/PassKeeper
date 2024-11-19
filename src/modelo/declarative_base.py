@@ -1,15 +1,13 @@
-# src/modelo/declarative_base.py
-
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-import os
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-# Base de SQLAlchemy para todos los modelos
+# Aquí no debería haber validaciones específicas de correo
 Base = declarative_base()
-
-# Asegúrate de que la base de datos esté en una ubicación fija
-db_path = os.path.join(os.path.dirname(__file__), 'db.sqlite')
-engine = create_engine(f'sqlite:///{db_path}', echo=False)
-
+engine = create_engine('sqlite:///base_de_datos.db', echo=True)
 Session = sessionmaker(bind=engine)
 session = Session()
+
+def crear_tablas():
+    # Aquí simplemente creamos las tablas necesarias
+    Base.metadata.create_all(engine)
