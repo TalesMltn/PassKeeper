@@ -1,19 +1,14 @@
-# Proyecto PassKeeper
-## Descripcion
-Desarrolla una herramienta para que los usuarios puedan almacenar y gestionar sus contraseñas de forma segura. El proyecto debe implementar las funcionalidades básicas de añadir, editar y eliminar contraseñas, asegurando la
-protección de los datos con una base de datos SQLite y empleando contenedores Docker para gestionar el entorno de desarrollo.
-## Objetivos
--Proporcionar un medio seguro para almacenar y gestionar contraseñas, evitando el uso de contraseñas en texto plano.
+# Gestión de usuarios y contraseñas - "Seguridad y la facilidad de uso"
+## Descripción
+Nos enfoca en desarrollar un sistema de gestión de usuarios y contraseñas que prioriza la seguridad y la facilidad de uso. Permite a los usuarios registrarse, iniciar sesión y gestionar sus contraseñas de forma segura, incorporando funcionalidades como la autenticación de dos factores y el cifrado de datos para proteger la información. Además, mantiene un historial de cambios de contraseña que facilita la auditoría y mejora la gestión de credenciales, así como notificaciones y recordatorios para mantener las contraseñas actualizadas. En un entorno digital vulnerable a ataques, este sistema ofrece una solución integral que mejora la seguridad y fomenta buenas prácticas en la gestión de contraseñas.
 
--Permitir a los usuarios acceder fácilmente a sus contraseñas en diferentes dispositivos.
+## Equipo de desarrollo 
+| Apellidos y Nombres | Rol |
+|---------------------|-----|
+|Bacilio De La Cruza, Jose Anthony| Desarrollador |
+|Calderón Palomino, Luz Mayli| Desarrollador |
+|Lavado Valencia, Thalia Elizabeth| Desarrollador |
+|Serpa Carpena, Edgardo German| Desarrollador |
+|Sierra Leiva, Piero Martin| Desarrollador |
+|Vega Reyes, Steven Andrew| Desarrollador |
 
--Almacenar todas las contraseñas y datos sensibles en un solo lugar seguro.
-## Integrantes
-| Apellidos y nombres  | Rol  |
-|----------------------|----- |
-|Espinoza Zarate Juan Carlos|Scrum Master|
-|Flores Rodriguez Jhon|Desarrollador|
-|Olazo lope Sebastian Jair|Desarrolador|
-|Sulla Corbetta Jose|Desarrollador|
-|Vega Carhuallanqui Tatiana|Desarrollador|
-|Vilcahuaman Gonzales Jordan Ricardo|Desarrollador|
