@@ -1,3 +1,4 @@
+# inicializar.py
 from src.modelo.declarative_base import Base, engine
 
 def inicializar_bd():

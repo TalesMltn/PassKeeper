@@ -1,12 +1,31 @@
+# modelo.py
 from sqlalchemy import Column, Integer, String
-from src.modelo.declarative_base import Base
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-class Usuario(Base):
-    __tablename__ = 'usuarios'
+Base = declarative_base()
+engine = create_engine('sqlite:///base_de_datos.db', echo=True)
+Session = sessionmaker(bind=engine)
+session = Session()
 
-    id = Column(Integer, primary_key=True)
-    correo = Column(String, nullable=False)  # No aplicamos ninguna restricción aquí
-    hash_contraseña = Column(String, nullable=False)
+# Modelo de la tabla de contraseñas
+class Password(Base):
+    __tablename__ = 'passwords'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    service = Column(String, nullable=False)
+    username = Column(String, nullable=False)
+    password = Column(String, nullable=False)
 
-    def __repr__(self):
-        return f"<Usuario(id={self.id}, correo={self.correo})>"
+# Crear las tablas si no existen
+Base.metadata.create_all(engine)
+
+
+class Usuario:
+    __tablename__ = 'passwords'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    service = Column(String, nullable=False)
+    username = Column(String, nullable=False)
+    password = Column(String, nullable=False)
+
+Base.metadata.create_all(engine)
