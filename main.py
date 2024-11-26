@@ -1,316 +1,371 @@
 import sys
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QLabel,
-    QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox, QDialog
-)
-from PyQt5.QtCore import Qt
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-# Configuración de SQLAlchemy
-Base = declarative_base()
-engine = create_engine("sqlite:///gestor_contrasenas_sqlalchemy.db")
-Session = sessionmaker(bind=engine)
-session = Session()
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
+                             QLineEdit, QPushButton, QLabel, QStackedWidget,
+                             QMessageBox, QMainWindow, QTableWidget, QTableWidgetItem,
+                             QDialog, QFormLayout)
+from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtCore import Qt, QSize
 
 
-class Contrasena(Base):
-    __tablename__ = 'contrasenas'
-    id = Column(Integer, primary_key=True)
-    servicio = Column(String, nullable=False)
-    usuario = Column(String, nullable=False)
-    contrasena = Column(String, nullable=False)
+class PasswordEntry(QDialog):
+    def __init__(self, parent=None, service="", username="", password=""):
+        super().__init__(parent)
+        self.setWindowTitle("Entrada de Contraseña")
+        self.setModal(True)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #9333EA;
+                color: white;
+            }
+            QLineEdit {
+                padding: 5px;
+                border-radius: 3px;
+                background-color: white;
+                color: black;
+            }
+            QPushButton {
+                padding: 5px 10px;
+                border-radius: 3px;
+                background-color: #7C3AED;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: #6D28D9;
+            }
+        """)
+
+        layout = QFormLayout(self)
+
+        self.service_input = QLineEdit(service)
+        self.username_input = QLineEdit(username)
+        self.password_input = QLineEdit(password)
+        self.password_input.setEchoMode(QLineEdit.Password)
+
+        layout.addRow("Servicio:", self.service_input)
+        layout.addRow("Usuario:", self.username_input)
+        layout.addRow("Contraseña:", self.password_input)
+
+        buttons = QHBoxLayout()
+        save_button = QPushButton("Guardar")
+        save_button.clicked.connect(self.accept)
+        cancel_button = QPushButton("Cancelar")
+        cancel_button.clicked.connect(self.reject)
+
+        buttons.addWidget(save_button)
+        buttons.addWidget(cancel_button)
+        layout.addRow(buttons)
+
+    def get_data(self):
+        return (self.service_input.text(),
+                self.username_input.text(),
+                self.password_input.text())
 
 
-# Crear las tablas si no existen
-Base.metadata.create_all(engine)
-
-
-class InicioSesion(QDialog):
+class PasswordManager(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Inicio de Sesión")
-        self.resize(400, 250)
-        self.centrar_ventana()
-        self.setup_ui()
-
-    def centrar_ventana(self):
-        qr = self.frameGeometry()
-        cp = QApplication.desktop().screenGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
-
-    def setup_ui(self):
-        layout = QVBoxLayout()
-
-        self.usuario_input = QLineEdit()
-        self.usuario_input.setPlaceholderText("Usuario")
-        self.contrasena_input = QLineEdit()
-        self.contrasena_input.setPlaceholderText("Contraseña")
-        self.contrasena_input.setEchoMode(QLineEdit.Password)
-
-        self.login_button = QPushButton("Iniciar Sesión")
-        self.login_button.setFixedSize(200, 50)
-        self.login_button.setStyleSheet(
-            "background-color: #4CAF50; color: white; font-size: 16px; border-radius: 10px;")
-        self.login_button.clicked.connect(self.validar_credenciales)
-
-        layout.addWidget(self.usuario_input)
-        layout.addWidget(self.contrasena_input)
-        layout.addWidget(self.login_button)
-        self.setLayout(layout)
-
-    def validar_credenciales(self):
-        usuario = self.usuario_input.text()
-        contrasena = self.contrasena_input.text()
-
-        if usuario == "papita123" and contrasena == "camote123":
-            self.accept()
-        else:
-            QMessageBox.warning(self, "Error", "Usuario o contraseña incorrectos.")
-
-
-class GestorContrasenas(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Gestor de Contraseñas")
-        self.resize(900, 600)
-        self.centrar_ventana()
-        self.setup_ui()
-
-    def centrar_ventana(self):
-        qr = self.frameGeometry()
-        cp = QApplication.desktop().screenGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
-
-    def setup_ui(self):
-        layout = QVBoxLayout()
+        self.setWindowTitle('Gestor de Contraseñas')
+        self.setGeometry(100, 100, 800, 500)
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #9333EA;
+            }
+            QTableWidget {
+                background-color: white;
+                color: black;
+            }
+            QTableWidget::item:selected {
+                background-color: #7C3AED;
+                color: white;
+            }
+            QPushButton {
+                padding: 5px 10px;
+                border-radius: 3px;
+                background-color: #7C3AED;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: #6D28D9;
+            }
+        """)
 
         self.table = QTableWidget()
         self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(["Servicio", "Usuario", "Contraseña"])
-        self.table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.setHorizontalHeaderLabels(['Servicio', 'Usuario', 'Contraseña'])
+        self.setCentralWidget(self.table)
 
-        button_layout = QHBoxLayout()
-        self.add_button = self.crear_boton("Añadir", "#4CAF50", self.abrir_ventana_anadir)
-        self.edit_button = self.crear_boton("Editar", "#2196F3", self.abrir_ventana_editar)
-        self.delete_button = self.crear_boton("Eliminar", "#F44336", self.eliminar_contrasena)
-        self.show_password_button = self.crear_boton("Mostrar Contraseña", "#FFC107", self.mostrar_contrasena)
+        toolbar = self.addToolBar('Acciones')
+        toolbar.setStyleSheet("""
+            QToolBar {
+                spacing: 10px;
+                background-color: #7C3AED;
+            }
+        """)
 
-        button_layout.addWidget(self.add_button)
-        button_layout.addWidget(self.edit_button)
-        button_layout.addWidget(self.delete_button)
-        button_layout.addWidget(self.show_password_button)
+        add_action = toolbar.addAction('Añadir')
+        add_action.triggered.connect(self.add_password)
 
-        layout.addWidget(self.table)
-        layout.addLayout(button_layout)
+        edit_action = toolbar.addAction('Editar')
+        edit_action.triggered.connect(self.edit_password)
 
-        container = QWidget()
-        container.setLayout(layout)
-        self.setCentralWidget(container)
+        delete_action = toolbar.addAction('Eliminar')
+        delete_action.triggered.connect(self.delete_password)
 
-        self.listar_contrasenas()
+        self.load_passwords()
 
-    def crear_boton(self, texto, color, funcion):
-        boton = QPushButton(texto)
-        boton.setFixedSize(200, 50)
-        boton.setStyleSheet(f"background-color: {color}; color: white; font-size: 16px; border-radius: 10px;")
-        boton.clicked.connect(funcion)
-        return boton
+    def load_passwords(self):
+        # Simular carga de contraseñas (en una aplicación real, esto vendría de una base de datos)
+        passwords = [
+            ('Google', 'usuario1@gmail.com', '********'),
+            ('Facebook', 'usuario2@facebook.com', '********'),
+            ('Twitter', 'usuario3@twitter.com', '********'),
+        ]
+        self.table.setRowCount(len(passwords))
+        for row, (service, username, password) in enumerate(passwords):
+            self.table.setItem(row, 0, QTableWidgetItem(service))
+            self.table.setItem(row, 1, QTableWidgetItem(username))
+            self.table.setItem(row, 2, QTableWidgetItem(password))
 
-    def listar_contrasenas(self):
-        contrasenas = session.query(Contrasena).all()
-        self.table.setRowCount(len(contrasenas))
-        for row_idx, contrasena in enumerate(contrasenas):
-            self.table.setItem(row_idx, 0, QTableWidgetItem(contrasena.servicio))
-            self.table.setItem(row_idx, 1, QTableWidgetItem(contrasena.usuario))
-            self.table.setItem(row_idx, 2, QTableWidgetItem("******"))  # Ocultar contraseña
+    def add_password(self):
+        dialog = PasswordEntry(self)
+        if dialog.exec_():
+            service, username, password = dialog.get_data()
+            row_position = self.table.rowCount()
+            self.table.insertRow(row_position)
+            self.table.setItem(row_position, 0, QTableWidgetItem(service))
+            self.table.setItem(row_position, 1, QTableWidgetItem(username))
+            self.table.setItem(row_position, 2, QTableWidgetItem('********'))
 
-    def mostrar_contrasena(self):
-        selected_row = self.table.currentRow()
-        if selected_row != -1:
-            id_contrasena = session.query(Contrasena).all()[selected_row].id
-            contrasena = session.query(Contrasena).filter(Contrasena.id == id_contrasena).first().contrasena
-            autenticado = self.autenticar_usuario()
-            if autenticado:
-                QMessageBox.information(self, "Contraseña", f"La contraseña es: {contrasena}")
-        else:
-            QMessageBox.warning(self, "Error", "Selecciona una fila para mostrar la contraseña.")
+    def edit_password(self):
+        current_row = self.table.currentRow()
+        if current_row >= 0:
+            service = self.table.item(current_row, 0).text()
+            username = self.table.item(current_row, 1).text()
+            password = '********'  # En una aplicación real, obtendríamos la contraseña real
 
-    def autenticar_usuario(self):
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Autenticación Administrador")
+            dialog = PasswordEntry(self, service, username, password)
+            if dialog.exec_():
+                new_service, new_username, new_password = dialog.get_data()
+                self.table.setItem(current_row, 0, QTableWidgetItem(new_service))
+                self.table.setItem(current_row, 1, QTableWidgetItem(new_username))
+                self.table.setItem(current_row, 2, QTableWidgetItem('********'))
+
+    def delete_password(self):
+        current_row = self.table.currentRow()
+        if current_row >= 0:
+            confirm = QMessageBox.question(self, 'Confirmar eliminación',
+                                           '¿Estás seguro de que quieres eliminar esta contraseña?',
+                                           QMessageBox.Yes | QMessageBox.No)
+            if confirm == QMessageBox.Yes:
+                self.table.removeRow(current_row)
+
+
+class AuthSystem(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle('Sistema de Autenticación')
+        self.setFixedSize(400, 500)
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #9333EA;
+                color: white;
+                font-size: 14px;
+            }
+            QLineEdit, QPushButton {
+                padding: 10px;
+                border-radius: 5px;
+            }
+            QLineEdit {
+                background-color: white;
+                color: black;
+            }
+            QPushButton {
+                background-color: #7C3AED;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #6D28D9;
+            }
+        """)
+
+        self.stacked_widget = QStackedWidget()
+        self.login_page = self.create_login_page()
+        self.register_page = self.create_register_page()
+        self.reset_page = self.create_reset_page()
+
+        self.stacked_widget.addWidget(self.login_page)
+        self.stacked_widget.addWidget(self.register_page)
+        self.stacked_widget.addWidget(self.reset_page)
+
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self.stacked_widget)
+        self.setLayout(main_layout)
+
+    def create_login_page(self):
+        page = QWidget()
         layout = QVBoxLayout()
 
-        usuario_input = QLineEdit()
-        usuario_input.setPlaceholderText("Usuario Administrador")
-        contrasena_input = QLineEdit()
-        contrasena_input.setPlaceholderText("Contraseña")
-        contrasena_input.setEchoMode(QLineEdit.Password)
+        icon_label = QLabel()
+        pixmap = QPixmap("user_icon.png")  # Asegúrate de tener este archivo
+        icon_label.setPixmap(pixmap.scaled(100, 100, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        icon_label.setAlignment(Qt.AlignCenter)
 
-        confirmar_button = QPushButton("Confirmar")
-        confirmar_button.clicked.connect(dialog.accept)
+        title = QLabel("Iniciar Sesión")
+        title.setStyleSheet("font-size: 24px; font-weight: bold;")
+        title.setAlignment(Qt.AlignCenter)
 
-        layout.addWidget(usuario_input)
-        layout.addWidget(contrasena_input)
-        layout.addWidget(confirmar_button)
-        dialog.setLayout(layout)
+        self.username = QLineEdit()
+        self.username.setObjectName("username")
+        self.username.setPlaceholderText("Usuario")
+        self.password = QLineEdit()
+        self.password.setObjectName("password")
+        self.password.setPlaceholderText("Contraseña")
+        self.password.setEchoMode(QLineEdit.Password)
 
-        if dialog.exec() == QDialog.Accepted:
-            usuario = usuario_input.text()
-            contrasena = contrasena_input.text()
-            return usuario == "papita123" and contrasena == "camote123"
-        return False
+        login_button = QPushButton("Ingresar")
+        login_button.clicked.connect(self.show_auto_logout_dialog)
 
-    def abrir_ventana_anadir(self):
-        self.anadir_window = VentanaAnadir(self)
-        self.anadir_window.show()
+        register_link = QPushButton("¿Es tu primera vez? Regístrate")
+        register_link.setStyleSheet("background-color: transparent; text-decoration: underline;")
+        register_link.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.register_page))
 
-    def abrir_ventana_editar(self):
-        selected_row = self.table.currentRow()
-        if selected_row != -1:
-            id_contrasena = session.query(Contrasena).all()[selected_row].id
-            self.editar_window = VentanaEditar(self, id_contrasena)
-            self.editar_window.show()
-        else:
-            QMessageBox.warning(self, "Error", "Selecciona una fila para editar.")
+        forgot_password = QPushButton("¿Olvidaste la contraseña?")
+        forgot_password.setStyleSheet("background-color: transparent; text-decoration: underline;")
+        forgot_password.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.reset_page))
 
-    def eliminar_contrasena(self):
-        selected_row = self.table.currentRow()
-        if selected_row != -1:
-            autenticado = self.autenticar_usuario()
-            if autenticado:
-                id_contrasena = session.query(Contrasena).all()[selected_row].id
-                confirm = QMessageBox.question(
-                    self, "Confirmar", "¿Estás seguro de eliminar esta contraseña?",
-                    QMessageBox.Yes | QMessageBox.No
-                )
-                if confirm == QMessageBox.Yes:
-                    session.query(Contrasena).filter(Contrasena.id == id_contrasena).delete()
-                    session.commit()
-                    QMessageBox.information(self, "Éxito", "Contraseña eliminada con éxito.")
-                    self.listar_contrasenas()
-        else:
-            QMessageBox.warning(self, "Error", "Selecciona una fila para eliminar.")
+        layout.addWidget(icon_label)
+        layout.addWidget(title)
+        layout.addWidget(self.username)
+        layout.addWidget(self.password)
+        layout.addWidget(login_button)
+        layout.addWidget(register_link)
+        layout.addWidget(forgot_password)
+        layout.addStretch()
 
+        page.setLayout(layout)
+        return page
 
-class VentanaAnadir(QDialog):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.setWindowTitle("Añadir Contraseña")
-        self.resize(400, 250)
-        self.centrar_ventana()
-        self.setup_ui()
-
-    def centrar_ventana(self):
-        qr = self.frameGeometry()
-        cp = QApplication.desktop().screenGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
-
-    def setup_ui(self):
+    def create_register_page(self):
+        page = QWidget()
         layout = QVBoxLayout()
-        self.servicio_input = QLineEdit()
-        self.servicio_input.setPlaceholderText("Servicio")
-        self.usuario_input = QLineEdit()
-        self.usuario_input.setPlaceholderText("Usuario")
-        self.contrasena_input = QLineEdit()
-        self.contrasena_input.setPlaceholderText("Contraseña")
-        self.contrasena_input.setEchoMode(QLineEdit.Password)  # Ocultar contraseña
 
-        self.add_button = QPushButton("Guardar")
-        self.add_button.setStyleSheet("background-color: #4CAF50; color: white; font-size: 14px;")
-        self.add_button.clicked.connect(self.anadir_contrasena)
+        title = QLabel("Registrar usuario")
+        title.setStyleSheet("font-size: 24px; font-weight: bold;")
+        title.setAlignment(Qt.AlignCenter)
 
-        layout.addWidget(self.servicio_input)
-        layout.addWidget(self.usuario_input)
-        layout.addWidget(self.contrasena_input)
-        layout.addWidget(self.add_button)
-        self.setLayout(layout)
+        username = QLineEdit()
+        username.setPlaceholderText("Crear Usuario")
+        email = QLineEdit()
+        email.setPlaceholderText("Correo electrónico")
 
-    def anadir_contrasena(self):
-        servicio = self.servicio_input.text()
-        usuario = self.usuario_input.text()
-        contrasena = self.contrasena_input.text()
+        code_layout = QHBoxLayout()
+        code = QLineEdit()
+        code.setPlaceholderText("Código de verificación")
+        generate_code = QPushButton("Generar por email")
+        code_layout.addWidget(code)
+        code_layout.addWidget(generate_code)
 
-        if servicio and usuario and contrasena:
-            nueva_contrasena = Contrasena(servicio=servicio, usuario=usuario, contrasena=contrasena)
-            session.add(nueva_contrasena)
-            session.commit()
-            QMessageBox.information(self, "Éxito", "Contraseña añadida con éxito.")
-            self.parent().listar_contrasenas()
-            self.close()
-        else:
-            QMessageBox.warning(self, "Error", "Por favor, llena todos los campos.")
+        password = QLineEdit()
+        password.setPlaceholderText("Contraseña")
+        password.setEchoMode(QLineEdit.Password)
+        confirm_password = QLineEdit()
+        confirm_password.setPlaceholderText("Confirmar contraseña")
+        confirm_password.setEchoMode(QLineEdit.Password)
 
+        register_button = QPushButton("Registrar")
 
-class VentanaEditar(QDialog):
-    def __init__(self, parent, id_contrasena):
-        super().__init__(parent)
-        self.setWindowTitle("Editar Contraseña")
-        self.resize(400, 250)
-        self.id_contrasena = id_contrasena
-        self.centrar_ventana()
-        self.setup_ui()
-        self.cargar_datos()
+        login_link = QPushButton("¿Ya estás registrado? Iniciar Sesión")
+        login_link.setStyleSheet("background-color: transparent; text-decoration: underline;")
+        login_link.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.login_page))
 
-    def centrar_ventana(self):
-        qr = self.frameGeometry()
-        cp = QApplication.desktop().screenGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
+        layout.addWidget(title)
+        layout.addWidget(username)
+        layout.addWidget(email)
+        layout.addLayout(code_layout)
+        layout.addWidget(password)
+        layout.addWidget(confirm_password)
+        layout.addWidget(register_button)
+        layout.addWidget(login_link)
+        layout.addStretch()
 
-    def setup_ui(self):
+        page.setLayout(layout)
+        return page
+
+    def create_reset_page(self):
+        page = QWidget()
         layout = QVBoxLayout()
-        self.servicio_input = QLineEdit()
-        self.servicio_input.setPlaceholderText("Servicio")
-        self.usuario_input = QLineEdit()
-        self.usuario_input.setPlaceholderText("Usuario")
-        self.contrasena_input = QLineEdit()
-        self.contrasena_input.setPlaceholderText("Contraseña")
-        self.contrasena_input.setEchoMode(QLineEdit.Password)  # Ocultar contraseña
 
-        self.save_button = QPushButton("Guardar")
-        self.save_button.setStyleSheet("background-color: #4CAF50; color: white; font-size: 14px;")
-        self.save_button.clicked.connect(self.editar_contrasena)
+        title = QLabel("Restablecer contraseña")
+        title.setStyleSheet("font-size: 24px; font-weight: bold;")
+        title.setAlignment(Qt.AlignCenter)
 
-        layout.addWidget(self.servicio_input)
-        layout.addWidget(self.usuario_input)
-        layout.addWidget(self.contrasena_input)
-        layout.addWidget(self.save_button)
-        self.setLayout(layout)
+        email = QLineEdit()
+        email.setPlaceholderText("Correo electrónico")
 
-    def cargar_datos(self):
-        contrasena = session.query(Contrasena).filter(Contrasena.id == self.id_contrasena).first()
-        self.servicio_input.setText(contrasena.servicio)
-        self.usuario_input.setText(contrasena.usuario)
-        self.contrasena_input.setText(contrasena.contrasena)
+        code_layout = QHBoxLayout()
+        code = QLineEdit()
+        code.setPlaceholderText("Código de verificación")
+        generate_code = QPushButton("Generar por email")
+        code_layout.addWidget(code)
+        code_layout.addWidget(generate_code)
 
-    def editar_contrasena(self):
-        servicio = self.servicio_input.text()
-        usuario = self.usuario_input.text()
-        contrasena = self.contrasena_input.text()
+        new_password = QLineEdit()
+        new_password.setPlaceholderText("Contraseña")
+        new_password.setEchoMode(QLineEdit.Password)
+        confirm_password = QLineEdit()
+        confirm_password.setPlaceholderText("Confirmar nueva contraseña")
+        confirm_password.setEchoMode(QLineEdit.Password)
 
-        if servicio and usuario and contrasena:
-            contrasena_obj = session.query(Contrasena).filter(Contrasena.id == self.id_contrasena).first()
-            contrasena_obj.servicio = servicio
-            contrasena_obj.usuario = usuario
-            contrasena_obj.contrasena = contrasena
-            session.commit()
-            QMessageBox.information(self, "Éxito", "Contraseña editada con éxito.")
-            self.parent().listar_contrasenas()
-            self.close()
+        reset_button = QPushButton("Restablecer")
+
+        layout.addWidget(title)
+        layout.addWidget(email)
+        layout.addLayout(code_layout)
+        layout.addWidget(new_password)
+        layout.addWidget(confirm_password)
+        layout.addWidget(reset_button)
+        layout.addStretch()
+
+        page.setLayout(layout)
+        return page
+
+    def authenticate_user(self, username, password):
+        return username == "papita123" and password == "camote123"
+
+    def show_auto_logout_dialog(self):
+        if self.authenticate_user(self.username.text(), self.password.text()):
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setText("CERRAR SESIÓN AUTOMÁTICA")
+            msg.setInformativeText("¿Cerrar sesión automáticamente después de 10 min inactividad?")
+            msg.setWindowTitle("Confirmación")
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            result = msg.exec_()
+
+            # Independientemente de la respuesta, lanzamos el gestor de contraseñas
+            self.launch_password_manager()
         else:
-            QMessageBox.warning(self, "Error", "Por favor, llena todos los campos.")
+            self.show_incorrect_password_dialog()
 
+    def launch_password_manager(self):
+        self.hide()  # Ocultar ventana de login
+        self.password_manager = PasswordManager()
+        self.password_manager.show()
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    login = InicioSesion()
-    if login.exec() == QDialog.Accepted:
-        gestor = GestorContrasenas()
-        gestor.show()
-        sys.exit(app.exec())
+    def show_incorrect_password_dialog(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText("CLAVE INCORRECTA")
+        msg.setInformativeText(
+            "Después de tres intentos incorrectos el acceso se bloqueará. En caso no recuerdes tu contraseña, cambiala.")
+        msg.setWindowTitle("Advertencia")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
+if __name__ == '__main__':
+        app = QApplication(sys.argv)
+        auth_system = AuthSystem()
+        auth_system.show()
+        sys.exit(app.exec_())
