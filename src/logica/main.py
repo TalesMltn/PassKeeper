@@ -5,7 +5,9 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                              QDialog, QFormLayout)
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QSize
-from src.modelo.modelo import Password, session
+from PassKeeperCONHASH.src.modelo.modelo import Password, session
+
+import bcrypt
 
 class PasswordEntry(QDialog):
     def __init__(self, parent=None, service="", username="", password=""):
@@ -47,6 +49,12 @@ class PasswordEntry(QDialog):
         layout.addRow("Usuario:", self.username_input)
         layout.addRow("Contraseña:", self.password_input)
 
+        # Agregar el botón de mostrar/ocultar la contraseña
+        self.show_password_button = QPushButton("Mostrar Contraseña")
+        self.show_password_button.clicked.connect(self.toggle_password_visibility)
+
+        layout.addRow(self.show_password_button)
+
         buttons = QHBoxLayout()
         save_button = QPushButton("Guardar")
         save_button.clicked.connect(self.accept)
@@ -61,6 +69,25 @@ class PasswordEntry(QDialog):
         return (self.service_input.text(),
                 self.username_input.text(),
                 self.password_input.text())
+
+    def hash_password(self, password):
+        """ Hashear la contraseña para almacenarla de manera segura. """
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed
+
+    def toggle_password_visibility(self):
+        """ Alternar entre mostrar y ocultar la contraseña """
+        if self.password_input.echoMode() == QLineEdit.Password:
+            self.password_input.setEchoMode(QLineEdit.Normal)
+            self.show_password_button.setText("Ocultar Contraseña")
+        else:
+            self.password_input.setEchoMode(QLineEdit.Password)
+            self.show_password_button.setText("Mostrar Contraseña")
+
+    def show_plain_password(self, password):
+        """ Muestra la contraseña en texto plano en el campo, pero encriptada en la base de datos """
+        self.password_input.setText(password)
 
 class PasswordManager(QMainWindow):
     def __init__(self):
@@ -128,7 +155,8 @@ class PasswordManager(QMainWindow):
         dialog = PasswordEntry(self)
         if dialog.exec_():
             service, username, password = dialog.get_data()
-            new_password = Password(service=service, username=username, password=password)
+            hashed_password = dialog.hash_password(password)  # Hashear la contraseña antes de guardarla
+            new_password = Password(service=service, username=username, password=hashed_password)
             session.add(new_password)
             session.commit()
             self.load_passwords()
@@ -138,16 +166,16 @@ class PasswordManager(QMainWindow):
         if current_row >= 0:
             service = self.table.item(current_row, 0).text()
             username = self.table.item(current_row, 1).text()
-            # Para seguridad, no mostramos la contraseña real
             password = session.query(Password).filter_by(service=service, username=username).first().password
 
             dialog = PasswordEntry(self, service, username, password)
             if dialog.exec_():
                 new_service, new_username, new_password = dialog.get_data()
+                hashed_password = dialog.hash_password(new_password)  # Hashear la nueva contraseña
                 password_entry = session.query(Password).filter_by(service=service, username=username).first()
                 password_entry.service = new_service
                 password_entry.username = new_username
-                password_entry.password = new_password
+                password_entry.password = hashed_password
                 session.commit()
                 self.load_passwords()
 

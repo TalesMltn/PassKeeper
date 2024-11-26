@@ -4,7 +4,7 @@ import re
 class PasswordManager:
     def validate_password_length(self, password):
         # Verificar que la contraseña tenga al menos 12 caracteres y no más de 128
-        return 12 <= len(password) <= 128
+        return (12<= len(password) <= 128)
 
     def validate_password_strength(self, password):
         # Verificar que contenga mayúsculas, minúsculas, números y símbolos
