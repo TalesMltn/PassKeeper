@@ -1,4 +1,6 @@
 import sys
+
+
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                              QLineEdit, QPushButton, QLabel, QStackedWidget,
                              QMessageBox, QMainWindow, QTableWidget, QTableWidgetItem,
@@ -333,7 +335,7 @@ class AuthSystem(QWidget):
         return page
 
     def authenticate_user(self, username, password):
-        return username == "papita123" and password == "camote123"
+        return username == "ALISTAR" and password == "ELFRIO"
 
     def show_auto_logout_dialog(self):
         if self.authenticate_user(self.username.text(), self.password.text()):
